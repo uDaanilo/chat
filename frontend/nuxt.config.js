@@ -30,6 +30,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    "@plugins/env",
+    "@plugins/axios",
     {
       src: '~/plugins/socket.io',
       ssr: false
@@ -54,13 +56,14 @@ export default {
     '@nuxtjs/dayjs'
   ],
   router: {
-    base: "/chat/"
+    base: "/chat/",
+    middleware: ['onRequestError']
   },
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {
-    baseURL: 'https://chat-nuxtjs.herokuapp.com',
-    debug: false
-  },
+  // axios: {
+  //   baseURL: 'http://localhost:8080',
+  //   debug: false
+  // },
   dayjs: {
     locales: ['pt-br'],
     defaultLocale: 'pt-br',

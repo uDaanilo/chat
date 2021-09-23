@@ -13,27 +13,32 @@
           <input ref="imgInput" accept="image/*" @change="changeImagePreview" type="file" name="img" id="img" class="d-none">
         </div>
 
-        <v-text-field
-          label="Name"
-          color="accent"
-          type="text"
-          v-model="name"
+        <v-form ref="form" v-model="valid">
+          <v-text-field
+            label="Name"
+            color="accent"
+            type="text"
+            v-model="name"
+            :rules="[ rules.required, rules.minLength(name, 3) ]"
           @keydown.enter="register"
-        ></v-text-field>
-        <v-text-field
-          label="Email"
-          color="accent"
-          type="email"
-          v-model="email"
-          @keydown.enter="register"
-        ></v-text-field>
-        <v-text-field
-          label="Password"
-          color="accent"
-          type="password"
-          v-model="password"
-          @keydown.enter="register"
-        ></v-text-field>
+          ></v-text-field>
+          <v-text-field
+            label="Email"
+            color="accent"
+            type="email"
+            v-model="email"
+            @keydown.enter="register"
+            :rules="[ rules.required ]"
+          ></v-text-field>
+          <v-text-field
+            label="Password"
+            color="accent"
+            type="password"
+            v-model="password"
+            @keydown.enter="register"
+            :rules="[ rules.required, rules.minLength(password, 8) ]"
+          ></v-text-field>
+        </v-form>
       </v-card-text>
 
       <v-card-actions class="d-flex justify-center">
@@ -55,11 +60,18 @@ export default {
       name: '',
       email: '',
       password: '',
+      valid: false,
+      rules: {
+        required: val => !!val || 'Este campo deve ser preenchido',
+        minLength: (val, length) => val.length >= length || `Este campo deve ter no mínimo ${length} caracteres`
+      }
     }
   },
   methods: {
     register(){
-      if(!this.email || !this.password || !this.name) return alert("Preencha o formulario")
+      if(!this.$refs.form.validate())
+        return this.$store.dispatch('alert/set', { message: 'Preencha o formulário corretamente', type: 'error' })
+
       const { name, email, password } = this
 
       // const form = new FormData()
@@ -84,9 +96,7 @@ export default {
 
               this.$router.push('/chat')
             })
-            .catch(alert)
         })
-        .catch(alert)
     },
     changeImagePreview(e) {
       const preview = URL.createObjectURL(e.target.files[0])

@@ -5,13 +5,13 @@ import { io } from 'socket.io-client'
 const localStorageToken = localStorage.getItem('token') as string
 const token = JSON.parse(localStorageToken)
 
-const socket = io('https://chat-nuxtjs.herokuapp.com', {
-  autoConnect: token ? true : false,
-  reconnection: true,
-})
+export default ({ env }: any) => {
+  const socket = io(env.baseURL, {
+    autoConnect: token ? true : false,
+    reconnection: true,
+  })
+  
+  socket.auth = { token }
 
-socket.auth = { token }
-
-export default () => {
   Vue.use(VueSocket, socket)
 }

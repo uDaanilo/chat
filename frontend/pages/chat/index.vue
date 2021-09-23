@@ -26,7 +26,7 @@ export default {
       console.log(connectedUsers)
     },
     already_connected() {
-      alert('Sua conta esta conectada em outro navegador')
+      this.$store.dispatch('alert/set', { message: 'Sua conta está conectada em outro lugar', color: 'accent', time: Infinity, dismissable: false })
     }
   },
   mounted() {

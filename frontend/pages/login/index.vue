@@ -2,22 +2,32 @@
   <div @keydown.enter="signin" class="login">
     <v-card class="">
       <v-card-text>
-        <v-icon>mdi-account</v-icon> Login
-        <v-text-field
-          label="Email"
-          color="accent"
-          type="email"
-          v-model="email"
-          @keydown.enter="signin"
-        ></v-text-field>
-        <v-text-field
-          label="Password"
-          color="accent"
-          type="password"
-          v-model="password"
-          @keydown.enter="signin"
-        ></v-text-field>
+      <v-icon>mdi-account</v-icon> Login
+        
+        <v-form ref="form" :v-model="valid">
+          <v-text-field
+            label="Email"
+            color="accent"
+            type="email"
+            v-model="email"
+            @keydown.enter="signin"
+            required
+            :rules="[ rules.required ]"
+          ></v-text-field>
+
+          <v-text-field
+            label="Password"
+            color="accent"
+            type="password"
+            v-model="password"
+            @keydown.enter="signin"
+            required
+            :rules="[ rules.required, rules.minLength(password, 8) ]"
+          ></v-text-field>
+        </v-form>
+
       </v-card-text>
+
       <v-card-actions class="d-flex justify-center">
         <router-link to="/register">
           <v-btn text color="accent">
@@ -41,12 +51,18 @@ export default Vue.extend({
     return {
       email: '',
       password: '',
+      valid: false,
+      rules: {
+        required: val => !!val || 'Este campo deve ser preenchido',
+        minLength: (val, length) => val.length >= length || `Este campo deve ter no mínimo ${length} caracteres`
+      }
     }
   },
   methods: {
     signin(){
-      if(!this.email || !this.password) return alert("Preencha o formulario")
-
+      if(!this.$refs.form.validate())
+        return this.$store.dispatch('alert/set', { message: 'Preencha o formulário corretamente', type: 'error' })
+      
       this.$axios.post('/login', { email: this.email, password: this.password })
         .then(res => {
           const { user, token } = res.data
@@ -59,7 +75,6 @@ export default Vue.extend({
 
           this.$router.push('/chat')
         })
-        .catch(alert)
     }
   },
   created(){
