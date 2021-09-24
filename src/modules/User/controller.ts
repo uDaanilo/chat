@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { MulterCatboxFile } from "../../config/multer-catbox";
 import UserService from './service'
 
 class UserController { 
@@ -19,9 +20,11 @@ class UserController {
 
   async create(req: Request, res: Response) {
     const { name, email, password } = req.body
+    const file = req.file as MulterCatboxFile
+
     const userService = new UserService()
 
-    const user = await userService.create({ name, email, password })
+    const user = await userService.create({ name, email, password, img: file.url })
 
     res.json({ message: 'OK', user })
   }

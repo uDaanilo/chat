@@ -24,7 +24,6 @@ class Websocket {
   async init() {
     this.io.on('connection', async socket => {
       const { user } = socket.handshake
-      if(this.verifyAlreadyConnected(user, socket)) return
 
       this.connectedUsers.set(user.id, { user, socket })
 
@@ -39,33 +38,32 @@ class Websocket {
     })
   }
 
-  verifyAlreadyConnected(user: UserModel, socket: Socket): boolean {
+  verifyAlreadyConnected(socket: Socket, next: any) {
+    const { user } = socket.handshake
+
     if(this.connectedUsers.get(user.id)) {
       logger.info(`User ${user.name} already connected, kicking off`)
 
-      setTimeout(() => {
-        socket.emit("already_connected")
-        socket.disconnect(true)
-      }, 500)
+      setTimeout(() => socket.emit("already_connected"), 100)
 
-      return true
+      return next(new Error('Already connected'))
     }
 
-    return false
+    return next()
   }
 
   middlewares() {
     this.io.use(authenticatedSocket)
+    this.io.use((socket, next) => this.verifyAlreadyConnected(socket, next))
   }
 
   async message(content: string, user: UserModel) {
-
     const createMessage = await this.messageService.create({ author: user.id, content })
 
     this.io.emit('message', createMessage)
   }
 
-  async disconnect(user: UserModel) {
+  disconnect(user: UserModel) {
     logger.info(`User ${user.name} has disconnected`)
 
     this.connectedUsers.delete(user.id)
@@ -73,7 +71,7 @@ class Websocket {
     this.emitConnectedUsers()
   }
 
-  async emitConnectedUsers() {
+  emitConnectedUsers() {
     let formattedConnectedUsers = []
 
     this.connectedUsers.forEach(userSocket => {
@@ -85,7 +83,7 @@ class Websocket {
       })
     })
 
-    setTimeout(() => this.io.emit("connected_users", formattedConnectedUsers), 500)
+    setTimeout(() => this.io.emit("connected_users", formattedConnectedUsers), 100)
   }
 }
 

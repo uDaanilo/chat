@@ -2,6 +2,7 @@ import { Router } from "express";
 import UserController from "../modules/User/controller";
 import authenticated from "../middlewares/authenticated";
 import MessageController from "../modules/Message/controller";
+import upload from "../middlewares/upload";
 
 class Routes {
   public router: Router
@@ -19,7 +20,7 @@ class Routes {
     this.router.get('/user', authenticated, userController.index)
     this.router.get('/user/:id', authenticated, userController.getById)
     this.router.post('/user/validate', userController.validateToken)
-    this.router.post('/user', userController.create)
+    this.router.post('/user', upload.single('img'), userController.create)
     this.router.post('/login', userController.signin)
 
     this.router.get('/message', authenticated, msgController.index)

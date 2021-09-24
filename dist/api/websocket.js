@@ -59,8 +59,6 @@ var Websocket = /** @class */ (function () {
                     var _this = this;
                     return __generator(this, function (_a) {
                         user = socket.handshake.user;
-                        if (this.verifyAlreadyConnected(user, socket))
-                            return [2 /*return*/];
                         this.connectedUsers.set(user.id, { user: user, socket: socket });
                         logger_1.logger.info("New user " + user.name + " has connected");
                         this.emitConnectedUsers();
@@ -75,19 +73,19 @@ var Websocket = /** @class */ (function () {
             });
         });
     };
-    Websocket.prototype.verifyAlreadyConnected = function (user, socket) {
+    Websocket.prototype.verifyAlreadyConnected = function (socket, next) {
+        var user = socket.handshake.user;
         if (this.connectedUsers.get(user.id)) {
             logger_1.logger.info("User " + user.name + " already connected, kicking off");
-            setTimeout(function () {
-                socket.emit("already_connected");
-                socket.disconnect(true);
-            }, 500);
-            return true;
+            setTimeout(function () { return socket.emit("already_connected"); }, 100);
+            return next(new Error('Already connected'));
         }
-        return false;
+        return next();
     };
     Websocket.prototype.middlewares = function () {
+        var _this = this;
         this.io.use(authenticatedSocket_1.default);
+        this.io.use(function (socket, next) { return _this.verifyAlreadyConnected(socket, next); });
     };
     Websocket.prototype.message = function (content, user) {
         return __awaiter(this, void 0, void 0, function () {
@@ -104,33 +102,22 @@ var Websocket = /** @class */ (function () {
         });
     };
     Websocket.prototype.disconnect = function (user) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                logger_1.logger.info("User " + user.name + " has disconnected");
-                this.connectedUsers.delete(user.id);
-                this.emitConnectedUsers();
-                return [2 /*return*/];
-            });
-        });
+        logger_1.logger.info("User " + user.name + " has disconnected");
+        this.connectedUsers.delete(user.id);
+        this.emitConnectedUsers();
     };
     Websocket.prototype.emitConnectedUsers = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var formattedConnectedUsers;
-            var _this = this;
-            return __generator(this, function (_a) {
-                formattedConnectedUsers = [];
-                this.connectedUsers.forEach(function (userSocket) {
-                    formattedConnectedUsers.push({
-                        id: userSocket.user.id,
-                        name: userSocket.user.name,
-                        img: userSocket.user.img,
-                        socketId: userSocket.socket.id
-                    });
-                });
-                setTimeout(function () { return _this.io.emit("connected_users", formattedConnectedUsers); }, 500);
-                return [2 /*return*/];
+        var _this = this;
+        var formattedConnectedUsers = [];
+        this.connectedUsers.forEach(function (userSocket) {
+            formattedConnectedUsers.push({
+                id: userSocket.user.id,
+                name: userSocket.user.name,
+                img: userSocket.user.img,
+                socketId: userSocket.socket.id
             });
         });
+        setTimeout(function () { return _this.io.emit("connected_users", formattedConnectedUsers); }, 100);
     };
     return Websocket;
 }());
