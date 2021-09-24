@@ -24,6 +24,7 @@ class Routes {
     this.router.post('/login', userController.signin)
 
     this.router.get('/message', authenticated, msgController.index)
+    this.router.post('/message/image', authenticated, upload.single('img'), msgController.image)
   }
 }
 

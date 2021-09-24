@@ -58,6 +58,10 @@ var MessageController = /** @class */ (function () {
             });
         });
     };
+    MessageController.prototype.image = function (req, res) {
+        var file = req.file;
+        res.json({ src: file.url });
+    };
     return MessageController;
 }());
 exports.default = MessageController;
