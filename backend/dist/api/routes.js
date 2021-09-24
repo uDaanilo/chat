@@ -22,6 +22,7 @@ var Routes = /** @class */ (function () {
         this.router.post('/user', upload_1.default.single('img'), userController.create);
         this.router.post('/login', userController.signin);
         this.router.get('/message', authenticated_1.default, msgController.index);
+        this.router.post('/message/image', authenticated_1.default, upload_1.default.single('img'), msgController.image);
     };
     return Routes;
 }());

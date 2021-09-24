@@ -9,7 +9,13 @@
 
       <div class="message-content">
         <h4>{{ msg.author.name }} <small>{{ $dayjs(msg.createdAt).fromNow() }}</small></h4>
-        <p>{{ msg.content }}</p>
+        <p v-if="!msg.img">{{ msg.content }}</p>
+        <v-img
+          class="mt-1"
+          v-if="msg.img"
+          :src="msg.img"
+          max-width="30%"
+        />
       </div>
 
     </div>
@@ -23,39 +29,37 @@ export default {
   middleware: 'auth',
   data: () => ({
   }),
-  sockets: {
-    message(msg) {
-      this.messages.push(msg)
-
-      setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100)
-    }
-  }
 }
 </script>
 
 <style>
-  .chat .message {
+  .messages {
+    margin-bottom: 75px;
+    /* height: 10vh; */
+    width: 100%;
+  }
+  .messages .message {
     display: flex;
     width: 100%;
     padding: 0.3% 1%;
   }
 
-  .chat .message:hover {
+  .messages .message:hover {
     background-color: #1e1e1e;
   }
 
-  .chat .message .message-content {
+  .messages .message .message-content {
     margin: 0 0.3%;
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
 
-  .chat .message .message-content small {
+  .messages .message .message-content small {
     color: gray;
     font-weight: normal;
   }
-  .chat .message .message-content p {
+  .messages .message .message-content p {
     color: lightgray;
     word-break: break-all;
   }
