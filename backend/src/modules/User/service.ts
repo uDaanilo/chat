@@ -7,6 +7,7 @@ interface IUser {
   name?: string
   email: string
   password: string
+  img?: string
 }
 
 class UserService {
@@ -33,32 +34,32 @@ class UserService {
     return user
   }
 
-  public async create({ name, email, password }: IUser): Promise<UserModel> {
+  public async create({ name, email, password, img }: IUser): Promise<UserModel> {
     if(name.length < 3) throw new Error('Username min length 3')
     if(password.length < 8) throw new Error('Password min length 8')
 
     const userExists = await User.findOne({ email })
 
-    if(userExists) throw new Error('User already exists')
+    if(userExists) throw new Error('Este email já está em uso')
 
     const passwordHash = await hash(password, 8)
 
-    const user = await User.create({ name, email, password: passwordHash })
+    const user = await User.create({ name, email, password: passwordHash, img })
 
     return user
   }
 
   public async generateToken({ email, password }: IUser) {
-    if(!email || !password) throw new Error('Email/password incorrect')
+    if(!email || !password) throw new Error('Email/senha incorretos')
 
     const user =  await User.findOne({ email })
       .select('+password')
 
-    if(!user) throw new Error('Email/password incorrect')
+    if(!user) throw new Error('Email/senha incorretos')
 
     const isEqual = await compare(password, user.password)
 
-    if(!isEqual) throw new Error('Email/password incorrect')
+    if(!isEqual) throw new Error('Email/senha incorretos')
 
     const token = sign({
       email: user

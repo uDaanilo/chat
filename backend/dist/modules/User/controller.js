@@ -77,13 +77,14 @@ var UserController = /** @class */ (function () {
     };
     UserController.prototype.create = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, name, email, password, userService, user;
+            var _a, name, email, password, file, userService, user;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         _a = req.body, name = _a.name, email = _a.email, password = _a.password;
+                        file = req.file;
                         userService = new service_1.default();
-                        return [4 /*yield*/, userService.create({ name: name, email: email, password: password })];
+                        return [4 /*yield*/, userService.create({ name: name, email: email, password: password, img: file.url })];
                     case 1:
                         user = _b.sent();
                         res.json({ message: 'OK', user: user });

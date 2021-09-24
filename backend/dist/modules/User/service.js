@@ -94,7 +94,7 @@ var UserService = /** @class */ (function () {
         });
     };
     UserService.prototype.create = function (_a) {
-        var name = _a.name, email = _a.email, password = _a.password;
+        var name = _a.name, email = _a.email, password = _a.password, img = _a.img;
         return __awaiter(this, void 0, void 0, function () {
             var userExists, passwordHash, user;
             return __generator(this, function (_b) {
@@ -108,11 +108,11 @@ var UserService = /** @class */ (function () {
                     case 1:
                         userExists = _b.sent();
                         if (userExists)
-                            throw new Error('User already exists');
+                            throw new Error('Este email já está em uso');
                         return [4 /*yield*/, bcryptjs_1.hash(password, 8)];
                     case 2:
                         passwordHash = _b.sent();
-                        return [4 /*yield*/, User_1.default.create({ name: name, email: email, password: passwordHash })];
+                        return [4 /*yield*/, User_1.default.create({ name: name, email: email, password: passwordHash, img: img })];
                     case 3:
                         user = _b.sent();
                         return [2 /*return*/, user];
@@ -128,18 +128,18 @@ var UserService = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!email || !password)
-                            throw new Error('Email/password incorrect');
+                            throw new Error('Email/senha incorretos');
                         return [4 /*yield*/, User_1.default.findOne({ email: email })
                                 .select('+password')];
                     case 1:
                         user = _b.sent();
                         if (!user)
-                            throw new Error('Email/password incorrect');
+                            throw new Error('Email/senha incorretos');
                         return [4 /*yield*/, bcryptjs_1.compare(password, user.password)];
                     case 2:
                         isEqual = _b.sent();
                         if (!isEqual)
-                            throw new Error('Email/password incorrect');
+                            throw new Error('Email/senha incorretos');
                         token = jsonwebtoken_1.sign({
                             email: user
                         }, process.env.SECRET_KEY, {
