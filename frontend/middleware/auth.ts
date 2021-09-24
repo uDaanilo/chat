@@ -1,12 +1,18 @@
 import { Middleware } from '@nuxt/types'
 
 const Middleware: Middleware = function ({ redirect, $axios, store }) {
-  const token = localStorage.getItem('token')
-
+  let token = localStorage.getItem('token')
+  
   if(!token)
     return redirect('/login')
 
-  return $axios.post('/user/validate', { token: JSON.parse(token) })
+  try {
+    token = JSON.parse(token)
+  } catch (error) {
+    return redirect('/login')
+  }
+
+  return $axios.post('/user/validate', { token })
     .then(res => {
       const user = res.data
 
@@ -16,7 +22,7 @@ const Middleware: Middleware = function ({ redirect, $axios, store }) {
         return redirect('/login')
       }
 
-      $axios.setToken(JSON.parse(token), 'bearer')
+      $axios.setToken(token as string, 'bearer')
       store.commit('user/set', {
         name: user.name,
         email: user.email,

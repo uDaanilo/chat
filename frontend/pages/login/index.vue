@@ -1,8 +1,11 @@
 <template>
   <div @keydown.enter="signin" class="login">
-    <v-card class="">
+    <v-card style="min-width: 20%" class="">
+      <v-card-subtitle>
+        <v-icon>mdi-account</v-icon> Login
+      </v-card-subtitle>
+      
       <v-card-text>
-      <v-icon>mdi-account</v-icon> Login
         
         <v-form ref="form" :v-model="valid">
           <v-text-field
@@ -13,6 +16,7 @@
             @keydown.enter="signin"
             required
             :rules="[ rules.required ]"
+            :disabled="loading"
           ></v-text-field>
 
           <v-text-field
@@ -23,6 +27,7 @@
             @keydown.enter="signin"
             required
             :rules="[ rules.required, rules.minLength(password, 8) ]"
+            :disabled="loading"
           ></v-text-field>
         </v-form>
 
@@ -30,11 +35,11 @@
 
       <v-card-actions class="d-flex justify-center">
         <router-link to="/register">
-          <v-btn text color="accent">
+          <v-btn :loading="loading" text color="accent">
             <v-icon>mdi-account-plus</v-icon> Criar conta
           </v-btn>
         </router-link>
-        <v-btn @click="signin" text color="accent">
+        <v-btn :loading="loading" @click="signin" text color="accent">
           <v-icon>mdi-login</v-icon> Entrar
         </v-btn>
       </v-card-actions>
@@ -52,6 +57,7 @@ export default Vue.extend({
       email: '',
       password: '',
       valid: false,
+      loading: false,
       rules: {
         required: val => !!val || 'Este campo deve ser preenchido',
         minLength: (val, length) => val.length >= length || `Este campo deve ter no mínimo ${length} caracteres`
@@ -63,6 +69,7 @@ export default Vue.extend({
       if(!this.$refs.form.validate())
         return this.$store.dispatch('alert/set', { message: 'Preencha o formulário corretamente', type: 'error' })
       
+      this.loading = true
       this.$axios.post('/login', { email: this.email, password: this.password })
         .then(res => {
           const { user, token } = res.data
@@ -75,6 +82,7 @@ export default Vue.extend({
 
           this.$router.push('/chat')
         })
+        .catch(() => this.loading = false)
     }
   },
   created(){

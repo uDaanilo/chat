@@ -15,5 +15,10 @@ export const mutations = {
     state.name = profile.name
     state.email = profile.email
     state.img = profile.img
+  },
+  clear(state: IUser) {
+    state.name = '',
+    state.email = '',
+    state.img = ''
   }
 }
