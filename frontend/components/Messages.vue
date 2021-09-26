@@ -1,20 +1,21 @@
 <template>
   <div class="messages">
-    <div v-for="msg in messages" :key="msg._id" class="message">
+    <Loading v-if="loading" />
+    <div v-show="!loading" v-for="msg in messages" :key="msg.id" class="message">
       <div class="author-img">
         <v-avatar>
           <v-img :src="msg.author.img"></v-img>
         </v-avatar>
       </div>
 
-      <div class="message-content">
+      <div class="message-content ml-3">
         <h4>{{ msg.author.name }} <small>{{ $dayjs(msg.createdAt).fromNow() }}</small></h4>
         <p v-if="!msg.img">{{ msg.content }}</p>
-        <v-img
-          class="mt-1"
+        <img
+          id="message-image"
+          class="mt-1 mb-3"
           v-if="msg.img"
           :src="msg.img"
-          max-width="30%"
         />
       </div>
 
@@ -25,18 +26,42 @@
 <script>
 export default {
   name: "Messages",
-  props: ["messages"],
+  props: ["messages", "loading"],
   middleware: 'auth',
   data: () => ({
   }),
+  methods: {
+    scrollOnMessage() {
+      const messagesDiv = document.querySelector('.messages')
+      const observer = new MutationObserver(() => {
+        messagesDiv.scrollTo(0, messagesDiv.scrollHeight)
+      })
+
+      messagesDiv.addEventListener('scroll', () => {
+        if((messagesDiv.clientHeight + messagesDiv.scrollTop) >= (messagesDiv.scrollHeight - 300))
+          observer.observe(messagesDiv, { childList: true, subtree: true })
+        else
+          observer.disconnect()
+      })
+    }
+  },
+  mounted() {
+    this.scrollOnMessage()
+  },
+  watch: {
+    loading() {
+      setTimeout(() => document.querySelector('.messages').scrollTo(0, document.querySelector('.messages').scrollHeight), 500)
+    }
+  }
 }
 </script>
 
 <style>
   .messages {
-    margin-bottom: 75px;
-    /* height: 10vh; */
-    width: 100%;
+    grid-area: messages;
+    overflow-y: auto;
+    height: 95%;
+    padding-bottom: 25px;
   }
   .messages .message {
     display: flex;
@@ -62,5 +87,10 @@ export default {
   .messages .message .message-content p {
     color: lightgray;
     word-break: break-all;
+  }
+  .message #message-image {
+    max-width: 50%;
+    width: auto;
+    height: 100%;
   }
 </style>

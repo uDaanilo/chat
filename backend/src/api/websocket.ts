@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io"
 import { logger } from "../logger"
 import authenticatedSocket from "../middlewares/authenticatedSocket"
 import MessageService from "../modules/Message/service"
+import UserService from "../modules/User/service"
 import { UserModel } from '../models/User'
 
 interface UserSocket {
@@ -13,6 +14,7 @@ class Websocket {
   public io: Server
   public connectedUsers = new Map<string, UserSocket>()
   private messageService = new MessageService()
+  private userService = new UserService()
 
   constructor(io: Server) {
     this.io = io
@@ -33,6 +35,8 @@ class Websocket {
       socket.on('message', content => {
         this.message(content, user)
       })
+
+      socket.on('connected_users:get', () => this.emitConnectedUsers(socket.id))
 
       socket.on('disconnect', () => this.disconnect(user))
     })
@@ -58,9 +62,19 @@ class Websocket {
   }
 
   async message(content: string, user: UserModel) {
-    const createMessage = await this.messageService.create({ author: user.id, content })
+    const message = await this.messageService.create({ author: user.id, content })
 
-    this.io.emit('message', createMessage)
+    const formattedMessage = {
+      author: {
+        img: message.author.img,
+        name: message.author.name,
+      },
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt
+    }
+
+    this.io.emit('message', formattedMessage)
   }
 
   disconnect(user: UserModel) {
@@ -71,9 +85,9 @@ class Websocket {
     this.emitConnectedUsers()
   }
 
-  emitConnectedUsers() {
+  async emitConnectedUsers(to: string | null = null) {
     let formattedConnectedUsers = []
-
+    const users = await this.userService.get()
     this.connectedUsers.forEach(userSocket => {
       formattedConnectedUsers.push({
         id: userSocket.user.id,
@@ -82,6 +96,20 @@ class Websocket {
         socketId: userSocket.socket.id
       })
     })
+
+    users.forEach(user => {
+      if(formattedConnectedUsers.find(u => u.id === user.id)) return
+
+      formattedConnectedUsers.push({
+        id: user.id,
+        name: user.name,
+        img: user.img,
+        socketId: null
+      })
+    })
+
+    if(to)
+      return this.io.to(to).emit("connected_users", formattedConnectedUsers)
 
     setTimeout(() => this.io.emit("connected_users", formattedConnectedUsers), 100)
   }

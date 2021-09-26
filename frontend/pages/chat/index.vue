@@ -1,6 +1,8 @@
 <template>
   <section class="chat">
-    <Messages :messages="messages" />
+    <Profile />
+    <Messages :loading="loadingMessages" :messages="messages" />
+    <Online-users />
     <MessageField />
   </section>
 </template>
@@ -11,30 +13,16 @@ export default {
   middleware: 'auth',
   data: () => ({
     messages: [],
-    connectedUsers: []
+    loadingMessages: true
   }),
   sockets: {
-    connected_users(connectedUsers) {
-      connectedUsers = connectedUsers.sort((a, b) => {
-        if(a.socketId == this.$socket.client.id) return -1
-
-        return 0
-      })
-
-      this.connectedUsers = connectedUsers
-
-      console.log(connectedUsers)
-    },
     already_connected() {
       this.$store.dispatch('alert/set', { message: 'Sua conta está conectada em outro lugar', color: 'accent', time: Infinity, dismissable: false })
     },
-    async message(msg) {
+    message(msg) {
+      this.verifyContentIsAImage(msg)
+
       this.messages.push(msg)
-
-      const isImg = await this.verifyContentIsAImage(msg).catch(() => {})
-
-      if(isImg)
-        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 200)
 
     },
     connect_error(err) {
@@ -42,29 +30,19 @@ export default {
     }
   },
   methods: {
-    async verifyContentIsAImage(msg) {
-      return new Promise((resolve, reject) => {
-        if(/^(http|https):\/\/[^ "]+$/.test(msg.content) && /\.(png|jpg|jpeg|gif|webp)/g.test(msg.content)) {
-          fetch(msg.content)
-            .then(async res => {
-              if(res.headers.get('content-type').search('image') !== -1) 
-                msg.img = msg.content
-  
-                this.$nextTick(() => {
-                  this.messages = this.messages.map(el => {
-                    if(el._id == msg._id) 
-                      return msg
-  
-                    return el
-                  })
-                })
-                resolve(true)
-            })
-            .catch(reject)
-        } else {
-          reject(false)
-        }
-      })
+    verifyContentIsAImage(msg) {
+      if(/^(http|https):\/\/[^ "]+$/.test(msg.content) && /\.(png|jpg|jpeg|gif|webp)/g.test(msg.content)) {
+        msg.img = msg.content
+
+        this.$nextTick(() => {
+          this.messages = this.messages.map(el => {
+            if(el._id == msg._id) 
+              return msg
+
+            return el
+          })
+        })
+      }
     },
     getMessages() {
       this.$axios('/message')
@@ -73,24 +51,11 @@ export default {
           
           this.messages = messages
 
-          this.messages.map(msg => this.verifyContentIsAImage(msg).catch(() => {}))
-        })
-    },
-    scrollOnMessage() {
-      const observer = new MutationObserver(() => {
-        window.scrollTo(0, document.body.scrollHeight)
-      })
+          this.messages.forEach((msg) => this.verifyContentIsAImage(msg))
 
-      document.addEventListener('scroll', () => {
-        if((document.documentElement.clientHeight + document.documentElement.scrollTop) >= (document.documentElement.scrollHeight - 300))
-          observer.observe(document.querySelector('.messages'), { childList: true, subtree: true })
-        else
-          observer.observe(document.querySelector('.messages'), { childList: true, subtree: false })
-      })
+          this.loadingMessages = false
+        })
     }
-  },
-  mounted() {
-    this.scrollOnMessage()
   },
   created() {
     this.getMessages()
@@ -100,5 +65,17 @@ export default {
 
 <style>
   .chat {
+    display: grid;
+    height: 100vh;
+    grid-template-columns: calc(100% - 75px) 75px;
+    grid-template-areas: 
+      'messages online-users'
+    ;
+  }
+
+  @media screen and (max-width: 960px) {
+    .chat {
+      grid-template-columns: 100% 0;
+    }
   }
 </style>

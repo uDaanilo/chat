@@ -18,11 +18,11 @@
       solo
     >
       <template v-slot:append>
-        <v-btn @click="$refs.inputMessageField.click()" icon large>
+        <v-btn color="accent" :loading="imageUploadLoading" @click="$refs.inputMessageField.click()" icon large>
           <v-icon>mdi-file-image</v-icon>
         </v-btn>
 
-        <v-btn @click="logout" icon large>
+        <v-btn color="accent" @click="logout" icon large>
           <v-icon>mdi-logout</v-icon>
         </v-btn>
       </template>
@@ -35,7 +35,8 @@ export default {
   name: "Message_field",
   data(){
     return {
-      message: ''
+      message: '',
+      imageUploadLoading: false
     }
   },
   methods: {
@@ -47,28 +48,33 @@ export default {
       localStorage.removeItem('token')
       this.$store.commit('user/clear')
       this.$socket.client.auth = {}
+      this.$socket.client.disconnect()
 
       this.$router.push('/login')
     },
     sendImage(e) {
-      if(e.target.files[0].type.search('image') == -1) return
+      if(!e.target.files[0] || e.target.files[0].type.search('image') == -1) return
 
       const form = new FormData()
       form.append('img', e.target.files[0])
 
-      this.$axios.$post('/message/image', form)
+      this.imageUploadLoading = true
+      this.$axios.$post('/message/image', form, { timeout: 10000 })
         .then(res => {
+          this.imageUploadLoading = false
           this.$socket.client.emit('message', res.src)
         })
+        .catch(() => this.imageUploadLoading = false)
     }
   }
 }
 </script>
 <style>
   .message-field {
+    grid-area: messages;
     display: flex;
     position: fixed;
-    width: 100%;
+    width: 96%;
     height: 50px;
     bottom: 0;
   }
