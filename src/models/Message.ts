@@ -2,8 +2,10 @@ import { Document, model, Schema } from "mongoose";
 import { UserModel } from "./User";
 
 export interface IMessage {
-  author: UserModel,
+  author: UserModel
   content: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface MessageModel extends Document, IMessage {

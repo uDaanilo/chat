@@ -42,10 +42,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("../logger");
 var authenticatedSocket_1 = __importDefault(require("../middlewares/authenticatedSocket"));
 var service_1 = __importDefault(require("../modules/Message/service"));
+var service_2 = __importDefault(require("../modules/User/service"));
 var Websocket = /** @class */ (function () {
     function Websocket(io) {
         this.connectedUsers = new Map();
         this.messageService = new service_1.default();
+        this.userService = new service_2.default();
         this.io = io;
         this.middlewares();
         this.init();
@@ -65,6 +67,7 @@ var Websocket = /** @class */ (function () {
                         socket.on('message', function (content) {
                             _this.message(content, user);
                         });
+                        socket.on('connected_users:get', function () { return _this.emitConnectedUsers(socket.id); });
                         socket.on('disconnect', function () { return _this.disconnect(user); });
                         return [2 /*return*/];
                     });
@@ -89,13 +92,22 @@ var Websocket = /** @class */ (function () {
     };
     Websocket.prototype.message = function (content, user) {
         return __awaiter(this, void 0, void 0, function () {
-            var createMessage;
+            var message, formattedMessage;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.messageService.create({ author: user.id, content: content })];
                     case 1:
-                        createMessage = _a.sent();
-                        this.io.emit('message', createMessage);
+                        message = _a.sent();
+                        formattedMessage = {
+                            author: {
+                                img: message.author.img,
+                                name: message.author.name,
+                            },
+                            id: message.id,
+                            content: message.content,
+                            createdAt: message.createdAt
+                        };
+                        this.io.emit('message', formattedMessage);
                         return [2 /*return*/];
                 }
             });
@@ -106,18 +118,43 @@ var Websocket = /** @class */ (function () {
         this.connectedUsers.delete(user.id);
         this.emitConnectedUsers();
     };
-    Websocket.prototype.emitConnectedUsers = function () {
-        var _this = this;
-        var formattedConnectedUsers = [];
-        this.connectedUsers.forEach(function (userSocket) {
-            formattedConnectedUsers.push({
-                id: userSocket.user.id,
-                name: userSocket.user.name,
-                img: userSocket.user.img,
-                socketId: userSocket.socket.id
+    Websocket.prototype.emitConnectedUsers = function (to) {
+        if (to === void 0) { to = null; }
+        return __awaiter(this, void 0, void 0, function () {
+            var formattedConnectedUsers, users;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        formattedConnectedUsers = [];
+                        return [4 /*yield*/, this.userService.get()];
+                    case 1:
+                        users = _a.sent();
+                        this.connectedUsers.forEach(function (userSocket) {
+                            formattedConnectedUsers.push({
+                                id: userSocket.user.id,
+                                name: userSocket.user.name,
+                                img: userSocket.user.img,
+                                socketId: userSocket.socket.id
+                            });
+                        });
+                        users.forEach(function (user) {
+                            if (formattedConnectedUsers.find(function (u) { return u.id === user.id; }))
+                                return;
+                            formattedConnectedUsers.push({
+                                id: user.id,
+                                name: user.name,
+                                img: user.img,
+                                socketId: null
+                            });
+                        });
+                        if (to)
+                            return [2 /*return*/, this.io.to(to).emit("connected_users", formattedConnectedUsers)];
+                        setTimeout(function () { return _this.io.emit("connected_users", formattedConnectedUsers); }, 100);
+                        return [2 /*return*/];
+                }
             });
         });
-        setTimeout(function () { return _this.io.emit("connected_users", formattedConnectedUsers); }, 100);
     };
     return Websocket;
 }());
