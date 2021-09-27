@@ -96,20 +96,8 @@ export default {
 
       this.$axios.post('/user', form)
         .then(() => {
-          this.$axios.post('/login', { email, password })
-            .then(res => {
-              const { user, token } = res.data
-
-              this.$store.commit('user/set', { name: user.name, email: user.email, img: user.img })
-    
-              localStorage.setItem('token', JSON.stringify(token))
-
-              this.$socket.client.auth = { token }
-              this.$socket.client.connect()
-
-              this.$router.push('/chat')
-            })
-            .catch(() => this.loading = false)
+          this.$store.dispatch('user/signin', { email, password })
+          this.loading = false
         })
         .catch(() => this.loading = false)
     },

@@ -3,11 +3,12 @@ import User, { UserModel } from "../../models/User"
 import { sign, verify } from 'jsonwebtoken'
 import { compare, hash } from 'bcryptjs'
 
-interface IUser {
+export interface IUser {
   name?: string
-  email: string
-  password: string
+  email?: string
+  password?: string
   img?: string
+  githubId?: string
 }
 
 class UserService {
@@ -34,7 +35,25 @@ class UserService {
     return user
   }
 
-  public async create({ name, email, password, img }: IUser): Promise<UserModel> {
+  public async getByGithubId(id: string) {
+    if(!id) throw new Error('Github id is mandatory')
+
+    const user = await User.findOne({ githubId: id })
+
+    return user
+  }
+
+  public async create({ name, email, password, img, githubId }: IUser): Promise<UserModel> {
+    if(githubId) {
+      const userExists = await User.findOne({ githubId })
+
+      if(userExists) throw new Error('User already exists')
+
+      const user = await User.create({ name, img, githubId })
+
+      return user
+    }
+
     if(name.length < 3) throw new Error('Username min length 3')
     if(password.length < 8) throw new Error('Password min length 8')
 
@@ -49,20 +68,28 @@ class UserService {
     return user
   }
 
-  public async generateToken({ email, password }: IUser) {
-    if(!email || !password) throw new Error('Email/senha incorretos')
+  public async generateToken({ email, password, githubId }: IUser) {
+    let user: UserModel
 
-    const user =  await User.findOne({ email })
-      .select('+password')
+    if(githubId) {
+      user =  await User.findOne({ githubId })
 
-    if(!user) throw new Error('Email/senha incorretos')
-
-    const isEqual = await compare(password, user.password)
-
-    if(!isEqual) throw new Error('Email/senha incorretos')
+      if(!user) throw new Error('User not found')
+    } else {
+      if(!email || !password) throw new Error('Email/senha incorretos')
+  
+      user =  await User.findOne({ email })
+        .select('+password')
+  
+      if(!user) throw new Error('Email/senha incorretos')
+  
+      const isEqual = await compare(password, user.password)
+  
+      if(!isEqual) throw new Error('Email/senha incorretos')
+    }
 
     const token = sign({
-      email: user
+      name: user.name
     }, process.env.SECRET_KEY, {
       subject: user.id,
       expiresIn: '1d'

@@ -48,7 +48,14 @@ export default {
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify',
   ],
-
+  loadingIndicator: {
+    name: 'pulse',
+    color: '#4fc08d',
+    background: '#121212'
+  },
+  publicRuntimeConfig: {
+    ghRedirectUrl: ''
+  },
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios

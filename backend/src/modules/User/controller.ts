@@ -41,6 +41,17 @@ class UserController {
     res.json({ user, token })
   }
 
+  async signinWithGithub(req: Request, res: Response) {
+    const userService = new UserService()
+    const token = await userService.generateToken({ githubId: req.user.githubId })
+
+    if(!token) throw new Error()
+
+    const user = await userService.getByGithubId(req.user.githubId)
+
+    res.json({ user, token })
+  }
+
   async validateToken(req: Request, res: Response) {
     const { token } = req.body
 

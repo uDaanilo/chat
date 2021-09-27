@@ -29,7 +29,7 @@
 
         <v-tooltip top>
           <template v-slot:activator="{ on, attrs }">
-            <v-btn color="accent" @click="logout" icon large v-bind="attrs" v-on="on">
+            <v-btn color="accent" @click="$store.dispatch('user/logout')" icon large v-bind="attrs" v-on="on">
               <v-icon>mdi-logout</v-icon>
             </v-btn>
           </template>
@@ -57,14 +57,6 @@ export default {
 
       this.$socket.client.emit('message', this.message)
       this.message = ''
-    },
-    logout() {
-      localStorage.removeItem('token')
-      this.$store.commit('user/clear')
-      this.$socket.client.auth = {}
-      this.$socket.client.disconnect()
-
-      this.$router.push('/login')
     },
     sendImage(e) {
       if(!e.target.files[0] || e.target.files[0].type.search('image') == -1) return

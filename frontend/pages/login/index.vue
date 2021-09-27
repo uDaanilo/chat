@@ -1,5 +1,5 @@
 <template>
-  <div @keydown.enter="signin" class="login">
+  <div class="login">
     <v-card style="min-width: 20%" class="">
       <v-card-subtitle>
         <v-icon>mdi-account</v-icon> Login
@@ -16,7 +16,7 @@
             @keydown.enter="signin"
             required
             :rules="[ rules.required ]"
-            :disabled="loading"
+            :disabled="$store.state.user.loading"
           ></v-text-field>
 
           <v-text-field
@@ -27,21 +27,28 @@
             @keydown.enter="signin"
             required
             :rules="[ rules.required ]"
-            :disabled="loading"
+            :disabled="$store.state.user.loading"
           ></v-text-field>
         </v-form>
 
       </v-card-text>
 
       <v-card-actions class="login-btns d-flex justify-center">
-        <v-btn :loading="loading" @click="signin" text color="accent">
+        <v-btn :loading="$store.state.user.loading" @click="signin" text color="accent">
           <v-icon>mdi-login</v-icon> Entrar
         </v-btn>
+
         <router-link to="/register">
-          <v-btn :loading="loading" text color="accent">
+          <v-btn :loading="$store.state.user.loading" text color="accent">
             <v-icon>mdi-account-plus</v-icon> Criar conta
           </v-btn>
         </router-link>
+
+        <a :href="`https://github.com/login/oauth/authorize?response_type=code&redirect_uri=${encodeURIComponent($config.ghRedirectUrl)}&client_id=7a6e70ad5d5082a3dff7`">
+          <v-btn :loading="$store.state.user.loading" text color="accent">
+            <v-icon>mdi-github</v-icon> Entrar com github
+          </v-btn>
+        </a>
       </v-card-actions>
     </v-card>
   </div>
@@ -57,7 +64,6 @@ export default Vue.extend({
       email: '',
       password: '',
       valid: false,
-      loading: false,
       rules: {
         required: val => !!val || 'Este campo deve ser preenchido',
         minLength: (val, length) => val.length >= length || `Este campo deve ter no mínimo ${length} caracteres`
@@ -69,24 +75,18 @@ export default Vue.extend({
       if(!this.$refs.form.validate())
         return this.$store.dispatch('alert/set', { message: 'Preencha o formulário corretamente', type: 'error' })
       
-      this.loading = true
-      this.$axios.post('/login', { email: this.email, password: this.password })
-        .then(res => {
-          const { user, token } = res.data
-          this.$store.commit('user/set', { name: user.name, email: user.email, img: user.img })
-
-          localStorage.setItem('token', JSON.stringify(token))
-
-          this.$socket.client.auth = { token }
-          this.$socket.client.connect()
-
-          this.$router.push('/chat')
-        })
-        .catch(() => this.loading = false)
+      const { email, password } = this
+      this.$store.dispatch('user/signin', { email, password })
     }
   },
   created(){
     if(this.$store.state.user.name) return this.$router.push('/chat')
+
+    const ghCode = new URLSearchParams(window.location.search).get('code')
+
+    if(!ghCode) return
+
+    this.$store.dispatch('user/signin', { provider: 'github' })
   }
 })
 </script>
