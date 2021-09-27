@@ -3,8 +3,9 @@ import { Document, model, Schema } from "mongoose";
 export interface IUser {
   name: string
   email: string
-  password: string
+  password?: string
   img: string
+  githubId: string
   createdAt: Date
   updatedAt: Date
 }
@@ -20,18 +21,19 @@ const UserSchema = new Schema<UserModel>({
   },
   email: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
-    required: true,
     select: false
   },
   img: {
     type: String,
     required: true,
     default: 'https://files.catbox.moe/r51t0h.png'
+  },
+  githubId: {
+    type: String
   }
 }, {
   timestamps: true

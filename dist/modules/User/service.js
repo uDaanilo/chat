@@ -93,27 +93,54 @@ var UserService = /** @class */ (function () {
             });
         });
     };
-    UserService.prototype.create = function (_a) {
-        var name = _a.name, email = _a.email, password = _a.password, img = _a.img;
+    UserService.prototype.getByGithubId = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var userExists, passwordHash, user;
+            var user;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!id)
+                            throw new Error('Github id is mandatory');
+                        return [4 /*yield*/, User_1.default.findOne({ githubId: id })];
+                    case 1:
+                        user = _a.sent();
+                        return [2 /*return*/, user];
+                }
+            });
+        });
+    };
+    UserService.prototype.create = function (_a) {
+        var name = _a.name, email = _a.email, password = _a.password, img = _a.img, githubId = _a.githubId;
+        return __awaiter(this, void 0, void 0, function () {
+            var userExists_1, user_1, userExists, passwordHash, user;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        if (!githubId) return [3 /*break*/, 3];
+                        return [4 /*yield*/, User_1.default.findOne({ githubId: githubId })];
+                    case 1:
+                        userExists_1 = _b.sent();
+                        if (userExists_1)
+                            throw new Error('User already exists');
+                        return [4 /*yield*/, User_1.default.create({ name: name, img: img, githubId: githubId })];
+                    case 2:
+                        user_1 = _b.sent();
+                        return [2 /*return*/, user_1];
+                    case 3:
                         if (name.length < 3)
                             throw new Error('Username min length 3');
                         if (password.length < 8)
                             throw new Error('Password min length 8');
                         return [4 /*yield*/, User_1.default.findOne({ email: email })];
-                    case 1:
+                    case 4:
                         userExists = _b.sent();
                         if (userExists)
                             throw new Error('Este email já está em uso');
                         return [4 /*yield*/, bcryptjs_1.hash(password, 8)];
-                    case 2:
+                    case 5:
                         passwordHash = _b.sent();
                         return [4 /*yield*/, User_1.default.create({ name: name, email: email, password: passwordHash, img: img })];
-                    case 3:
+                    case 6:
                         user = _b.sent();
                         return [2 /*return*/, user];
                 }
@@ -121,27 +148,37 @@ var UserService = /** @class */ (function () {
         });
     };
     UserService.prototype.generateToken = function (_a) {
-        var email = _a.email, password = _a.password;
+        var email = _a.email, password = _a.password, githubId = _a.githubId;
         return __awaiter(this, void 0, void 0, function () {
             var user, isEqual, token;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        if (!githubId) return [3 /*break*/, 2];
+                        return [4 /*yield*/, User_1.default.findOne({ githubId: githubId })];
+                    case 1:
+                        user = _b.sent();
+                        if (!user)
+                            throw new Error('User not found');
+                        return [3 /*break*/, 5];
+                    case 2:
                         if (!email || !password)
                             throw new Error('Email/senha incorretos');
                         return [4 /*yield*/, User_1.default.findOne({ email: email })
                                 .select('+password')];
-                    case 1:
+                    case 3:
                         user = _b.sent();
                         if (!user)
                             throw new Error('Email/senha incorretos');
                         return [4 /*yield*/, bcryptjs_1.compare(password, user.password)];
-                    case 2:
+                    case 4:
                         isEqual = _b.sent();
                         if (!isEqual)
                             throw new Error('Email/senha incorretos');
+                        _b.label = 5;
+                    case 5:
                         token = jsonwebtoken_1.sign({
-                            email: user
+                            name: user.name
                         }, process.env.SECRET_KEY, {
                             subject: user.id,
                             expiresIn: '1d'

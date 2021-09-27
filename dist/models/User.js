@@ -8,18 +8,19 @@ var UserSchema = new mongoose_1.Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true
+        unique: true,
     },
     password: {
         type: String,
-        required: true,
         select: false
     },
     img: {
         type: String,
         required: true,
         default: 'https://files.catbox.moe/r51t0h.png'
+    },
+    githubId: {
+        type: String
     }
 }, {
     timestamps: true

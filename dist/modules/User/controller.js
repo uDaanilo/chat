@@ -115,6 +115,27 @@ var UserController = /** @class */ (function () {
             });
         });
     };
+    UserController.prototype.signinWithGithub = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var userService, token, user;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        userService = new service_1.default();
+                        return [4 /*yield*/, userService.generateToken({ githubId: req.user.githubId })];
+                    case 1:
+                        token = _a.sent();
+                        if (!token)
+                            throw new Error();
+                        return [4 /*yield*/, userService.getByGithubId(req.user.githubId)];
+                    case 2:
+                        user = _a.sent();
+                        res.json({ user: user, token: token });
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     UserController.prototype.validateToken = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var token, userService, user;
