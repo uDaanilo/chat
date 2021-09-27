@@ -45,7 +45,7 @@ var MessageController = /** @class */ (function () {
     }
     MessageController.prototype.index = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var msgService, messages;
+            var msgService, messages, formattedMessages;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -53,7 +53,17 @@ var MessageController = /** @class */ (function () {
                         return [4 /*yield*/, msgService.getAll()];
                     case 1:
                         messages = _a.sent();
-                        return [2 /*return*/, res.json(messages)];
+                        formattedMessages = messages.map(function (msg) { return ({
+                            author: {
+                                id: msg.author.id,
+                                name: msg.author.name,
+                                img: msg.author.img,
+                            },
+                            id: msg.id,
+                            content: msg.content,
+                            createdAt: msg.createdAt
+                        }); });
+                        return [2 /*return*/, res.json(formattedMessages)];
                 }
             });
         });
