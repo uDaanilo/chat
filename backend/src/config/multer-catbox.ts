@@ -22,7 +22,12 @@ class MulterCatbox implements StorageEngine {
       body: form
     })
       .then(async res => {
-        cb(null, { url: await res.text() })
+        const url = await res.text()
+
+        if(url.startsWith('https'))
+          cb(null, { url })
+        else
+          cb(new Error('Internal server error'))
       })
       .catch(cb)
   }

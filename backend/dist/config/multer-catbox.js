@@ -60,17 +60,16 @@ var MulterCatbox = /** @class */ (function () {
                     body: form
                 })
                     .then(function (res) { return __awaiter(_this, void 0, void 0, function () {
-                    var _a, _b;
-                    var _c;
-                    return __generator(this, function (_d) {
-                        switch (_d.label) {
-                            case 0:
-                                _a = cb;
-                                _b = [null];
-                                _c = {};
-                                return [4 /*yield*/, res.text()];
+                    var url;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, res.text()];
                             case 1:
-                                _a.apply(void 0, _b.concat([(_c.url = _d.sent(), _c)]));
+                                url = _a.sent();
+                                if (url.startsWith('https'))
+                                    cb(null, { url: url });
+                                else
+                                    cb(new Error('Internal server error'));
                                 return [2 /*return*/];
                         }
                     });

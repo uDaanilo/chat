@@ -79,6 +79,9 @@ export default {
       if(!this.$refs.form.validate())
         return this.$store.dispatch('alert/set', { message: 'Preencha o formulário corretamente', type: 'error' })
 
+      if(!this.$refs.imgInput.files[0])
+        return this.$store.dispatch('alert/set', { message: 'Você deve selecionar uma imagem', type: 'error' })
+
       if(this.$refs.imgInput.files[0].size > (4 * 1024 * 1024))
         return this.$store.dispatch('alert/set', { message: 'Arquivo muito grande, tamanho máximo 4MB', color: 'accent' })
 
@@ -111,6 +114,7 @@ export default {
         .catch(() => this.loading = false)
     },
     changeImagePreview(e) {
+      if(!e.target.files[0]) return
       const preview = URL.createObjectURL(e.target.files[0])
 
       document.querySelector('#user-img').src = preview

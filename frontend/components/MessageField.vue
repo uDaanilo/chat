@@ -18,13 +18,23 @@
       solo
     >
       <template v-slot:append>
-        <v-btn color="accent" :loading="imageUploadLoading" @click="$refs.inputMessageField.click()" icon large>
-          <v-icon>mdi-file-image</v-icon>
-        </v-btn>
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn color="accent" :loading="imageUploadLoading" @click="$refs.inputMessageField.click()" icon large v-bind="attrs" v-on="on">
+              <v-icon>mdi-file-image</v-icon>
+            </v-btn>
+          </template>
+          <span>Enviar imagem</span>
+        </v-tooltip>
 
-        <v-btn color="accent" @click="logout" icon large>
-          <v-icon>mdi-logout</v-icon>
-        </v-btn>
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn color="accent" @click="logout" icon large v-bind="attrs" v-on="on">
+              <v-icon>mdi-logout</v-icon>
+            </v-btn>
+          </template>
+          <span>Deslogar</span>
+        </v-tooltip>
       </template>
     </v-text-field>
     
@@ -41,6 +51,10 @@ export default {
   },
   methods: {
     sendMessage() {
+      this.message = this.message.trim()
+
+      if(!this.message) return
+
       this.$socket.client.emit('message', this.message)
       this.message = ''
     },
@@ -74,8 +88,14 @@ export default {
     grid-area: messages;
     display: flex;
     position: fixed;
-    width: 96%;
+    width: calc(100% - 90px);
     height: 50px;
     bottom: 0;
+  }
+
+  @media screen and (max-width: 960px) {
+    .message-field {
+      width: 100%;
+    }
   }
 </style>

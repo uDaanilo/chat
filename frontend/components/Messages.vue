@@ -60,8 +60,8 @@ export default {
   .messages {
     grid-area: messages;
     overflow-y: auto;
-    height: 95%;
-    padding-bottom: 25px;
+    height: calc(100% - 70px);
+    max-height: 100vh;
   }
   .messages .message {
     display: flex;
@@ -92,5 +92,11 @@ export default {
     max-width: 50%;
     width: auto;
     height: 100%;
+  }
+
+  @media screen and (max-width: 960px) {
+    .message #message-image {
+      max-width: 75%;
+    }
   }
 </style>

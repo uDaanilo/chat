@@ -26,22 +26,22 @@
             v-model="password"
             @keydown.enter="signin"
             required
-            :rules="[ rules.required, rules.minLength(password, 8) ]"
+            :rules="[ rules.required ]"
             :disabled="loading"
           ></v-text-field>
         </v-form>
 
       </v-card-text>
 
-      <v-card-actions class="d-flex justify-center">
+      <v-card-actions class="login-btns d-flex justify-center">
+        <v-btn :loading="loading" @click="signin" text color="accent">
+          <v-icon>mdi-login</v-icon> Entrar
+        </v-btn>
         <router-link to="/register">
           <v-btn :loading="loading" text color="accent">
             <v-icon>mdi-account-plus</v-icon> Criar conta
           </v-btn>
         </router-link>
-        <v-btn :loading="loading" @click="signin" text color="accent">
-          <v-icon>mdi-login</v-icon> Entrar
-        </v-btn>
       </v-card-actions>
     </v-card>
   </div>
@@ -98,5 +98,8 @@ export default Vue.extend({
     align-items: center;
     width: 100%;
     height: 100vh;
+  }
+  .login-btns {
+    flex-direction: column;
   }
 </style>

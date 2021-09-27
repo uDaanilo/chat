@@ -23,7 +23,6 @@ export default {
       this.verifyContentIsAImage(msg)
 
       this.messages.push(msg)
-
     },
     connect_error(err) {
       console.error(err)
@@ -36,7 +35,7 @@ export default {
 
         this.$nextTick(() => {
           this.messages = this.messages.map(el => {
-            if(el._id == msg._id) 
+            if(el.id == msg.id) 
               return msg
 
             return el
@@ -66,11 +65,11 @@ export default {
 <style>
   .chat {
     display: grid;
-    height: 100vh;
     grid-template-columns: calc(100% - 75px) 75px;
     grid-template-areas: 
       'messages online-users'
     ;
+    position: relative;
   }
 
   @media screen and (max-width: 960px) {
